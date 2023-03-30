@@ -1,23 +1,13 @@
 import os
 import numpy as np
-import librosa
-import pyworld
+import torch
+from scipy.io import wavfile
+from crepe.model import CrepeInfer
 
 
-def compute_f0(path):
-    x, sr = librosa.load(path, sr=16000)
-    assert sr == 16000
-    f0, t = pyworld.dio(
-        x.astype(np.double),
-        fs=sr,
-        f0_ceil=900,
-        frame_period=1000 * 160 / sr,
-    )
-    f0 = pyworld.stonemask(x.astype(np.double), f0, t, fs=16000)
-    for index, pitch in enumerate(f0):
-        f0[index] = round(pitch, 1)
-    return f0
-
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+file = 'crepe/assets/full.pth'
+crepeInfer = CrepeInfer(file, device)
 
 if __name__ == "__main__":
     os.makedirs("filelists", exist_ok=True)
@@ -31,7 +21,7 @@ if __name__ == "__main__":
         if file.endswith(".wav"):
             file = file[:-4]
             wav_path = f"./{rootPath}//{file}.wav"
-            featur_pit = compute_f0(wav_path)
+            featur_pit = crepeInfer.compute_f0(wav_path)
 
             np.save(
                 f"{outPath}//{file}.nsf",

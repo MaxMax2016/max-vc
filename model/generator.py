@@ -7,8 +7,8 @@ from torch.nn import ConvTranspose1d
 from torch.nn.utils import weight_norm
 from torch.nn.utils import remove_weight_norm
 
-from .nsf import SourceModuleHnNSF
-from .bigv import init_weights, AMPBlock
+from .bigv import init_weights, SnakeBeta, AMPBlock
+from .alias import Activation1d
 
 
 class SpeakerAdapter(nn.Module):
@@ -56,18 +56,17 @@ class Generator(torch.nn.Module):
         # speaker adaper, 256 should change by what speaker encoder you use
         self.adapter = nn.ModuleList()
         # 1024 should change by your whisper out
+        self.cond_pit = nn.Linear(2048, hp.audio.n_mel_channels)
         self.cond_pre = nn.Linear(1024, hp.audio.n_mel_channels)
         self.cond_pos = nn.Embedding(3, hp.audio.n_mel_channels)
         # pre conv
+        self.conv_pit = nn.utils.weight_norm(
+            Conv1d(hp.audio.n_mel_channels, hp.gen.upsample_initial_channel, 7, 1, padding=3))
         self.conv_pre = nn.utils.weight_norm(
             Conv1d(hp.audio.n_mel_channels, hp.gen.upsample_initial_channel, 7, 1, padding=3))
-        # nsf
-        self.f0_upsamp = torch.nn.Upsample(
-            scale_factor=np.prod(hp.gen.upsample_rates))
-        self.m_source = SourceModuleHnNSF()
-        self.noise_convs = nn.ModuleList()
         # transposed conv-based upsamplers. does not apply anti-aliasing
         self.ups = nn.ModuleList()
+        self.upf = nn.ModuleList()
         for i, (u, k) in enumerate(zip(hp.gen.upsample_rates, hp.gen.upsample_kernel_sizes)):
             # spk
             self.adapter.append(SpeakerAdapter(
@@ -79,24 +78,13 @@ class Generator(torch.nn.Module):
                                                 2 ** (i + 1)),
                                             k, u, padding=(k - u) // 2))
             ]))
-            # nsf
-            if i + 1 < len(hp.gen.upsample_rates):
-                stride_f0 = np.prod(hp.gen.upsample_rates[i + 1:])
-                stride_f0 = int(stride_f0)
-                self.noise_convs.append(
-                    Conv1d(
-                        1,
-                        hp.gen.upsample_initial_channel // (2 ** (i + 1)),
-                        kernel_size=stride_f0 * 2,
-                        stride=stride_f0,
-                        padding=stride_f0 // 2,
-                    )
-                )
-            else:
-                self.noise_convs.append(
-                    Conv1d(1, hp.gen.upsample_initial_channel //
-                           (2 ** (i + 1)), kernel_size=1)
-                )
+            # pit
+            self.upf.append(nn.ModuleList([
+                weight_norm(ConvTranspose1d(hp.gen.upsample_initial_channel // (2 ** i),
+                                            hp.gen.upsample_initial_channel // (
+                                                2 ** (i + 1)),
+                                            k, u, padding=(k - u) // 2))
+            ]))
 
         # residual blocks using anti-aliased multi-periodicity composition modules (AMP)
         self.resblocks = nn.ModuleList()
@@ -106,19 +94,22 @@ class Generator(torch.nn.Module):
                 self.resblocks.append(AMPBlock(hp, ch, k, d))
 
         # post conv
+        activation_post = SnakeBeta(ch, alpha_logscale=True)
+        self.activation_post = Activation1d(activation=activation_post)
         self.conv_post = weight_norm(Conv1d(ch, 1, 7, 1, padding=3))
 
         # weight initialization
         for i in range(len(self.ups)):
             self.ups[i].apply(init_weights)
+        for i in range(len(self.upf)):
+            self.upf[i].apply(init_weights)
         self.conv_post.apply(init_weights)
 
     def forward(self, spk, x, pos, f0):
-        # nsf
-        f0 = f0[:, None]
-        f0 = self.f0_upsamp(f0).transpose(1, 2)
-        har_source, noi_source, uv = self.m_source(f0)
-        har_source = har_source.transpose(1, 2)
+        # pit conv
+        f = self.cond_pit(f0)               # [B, L, D]
+        f = torch.transpose(f, 1, -1)       # [B, D, L]
+        f = self.conv_pit(f)
         # pre conv
         x = self.cond_pre(x)                # [B, L, D]
         p = self.cond_pos(pos)
@@ -132,9 +123,10 @@ class Generator(torch.nn.Module):
                 x = self.ups[i][i_up](x)
             # adapter
             x = self.adapter[i](x, spk)
-            # nsf
-            x_source = self.noise_convs[i](har_source)
-            x = x + x_source
+            # upsampling
+            for i_up in range(len(self.upf[i])):
+                f = self.upf[i][i_up](f)
+            x = x + f
             # AMP blocks
             xs = None
             for j in range(self.num_kernels):
@@ -145,7 +137,7 @@ class Generator(torch.nn.Module):
             x = xs / self.num_kernels
 
         # post conv
-        x = nn.functional.leaky_relu(x)
+        x = self.activation_post(x)
         x = self.conv_post(x)
         x = torch.tanh(x)
         return x

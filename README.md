@@ -41,6 +41,8 @@ maxgan v2 == bigvgan + latent f0  PlayVoice/maxgan-svc
 
 - 4 提取基音，同时生成训练文件 **filelist/train.txt**，剪切train的前5条用于制作**filelist/eval.txt**
 
+    使用深度改在的torchcrepe提取F0隐藏特征，下载模型[full.pth](https://github.com/maxrmorrison/torchcrepe/blob/master/torchcrepe/assets/full.pth)
+
     > python svc_preprocess_f0.py
 
 - 5 从release页面下载预训练模型maxgan_pretrain，放到model_pretrain文件夹中，预训练模型中包含了生成器和判别器
@@ -78,7 +80,7 @@ https://user-images.githubusercontent.com/16432329/228889388-d7658930-6187-48a8-
 
 > python svc_inference_export.py --config config/maxgan.yaml --checkpoint_path chkpt/lora/lora_0090.pt
 
-到出的模型在当前文件夹maxgan_g.pth，文件大小为31.6M
+到出的模型在当前文件夹maxgan_g.pth，文件大小为19.3M
 
 > python svc_inference.py --config config/maxgan.yaml --model maxgan_g.pth --spk ./data_svc/**lora_speaker.npy** --wave test.wav
 
@@ -96,6 +98,8 @@ https://github.com/mindslab-ai/univnet [[paper]](https://arxiv.org/abs/2106.0788
 https://github.com/openai/whisper/ [[paper]](https://arxiv.org/abs/2212.04356)
 
 https://github.com/NVIDIA/BigVGAN [[paper]](https://arxiv.org/abs/2206.04658)
+
+https://github.com/maxrmorrison/torchcrepe
 
 https://github.com/chenwj1989/pafx
 

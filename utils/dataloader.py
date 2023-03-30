@@ -102,7 +102,7 @@ class FeatureFromDisk(Dataset):
         len_min = min(len_pit, len_ppg)
         len_wav = len_min * self.hp.audio.hop_length
 
-        pit = pit[:len_min]
+        pit = pit[:len_min, :]
         ppg = ppg[:len_min, :]
         pos = pos[:len_min]
         wav = wav[:, :len_wav]
@@ -110,9 +110,9 @@ class FeatureFromDisk(Dataset):
             max_frame_start = ppg.size(0) - self.frame_segment_length - 1
             frame_start = random.randint(0, max_frame_start)
             frame_end = frame_start + self.frame_segment_length
-            ppg = ppg[frame_start:frame_end,:]
+            ppg = ppg[frame_start:frame_end, :]
             pos = pos[frame_start:frame_end]
-            pit = pit[frame_start:frame_end]
+            pit = pit[frame_start:frame_end, :]
 
             wav_start = frame_start * self.hp.audio.hop_length
             wav_len = self.hp.audio.segment_length
