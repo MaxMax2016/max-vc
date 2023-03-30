@@ -15,9 +15,9 @@ maxgan v2 == bigvgan + latent f0  PlayVoice/maxgan-svc
 来至Microsoft的adapter，高效率微调
 ```
 
-使用自己的数据从头训练，使用分支：https://github.com/PlayVoice/lora-svc/tree/maxgan_v1_pretrain
+maxgan v2 没有显示使用F0，因此也没有使用到NSF
 
-主分支用于，说明如何基于预训练模型微调定制专有音色；各分支代码有差异，根据您的需要选择合理的代码分支。
+主分支用于，说明如何基于预训练模型微调定制专有音色；
 
 
 ## 训练
