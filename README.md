@@ -4,8 +4,12 @@
 
 浅浅训练一下，F0鲁棒性大大提高，但F0不具备可控性
 
+使用改造的torchcrepe提取F0隐藏特征
+
 ## 测试
-从release页面下面模型[max-vc-pretrain.pth]()
+从release页面下面模型[max-vc-pretrain.pth](https://github.com/PlayVoice/max-vc/releases/tag/v0.1)
+
+下载crepe模型[full.pth](https://github.com/maxrmorrison/torchcrepe/blob/master/torchcrepe/assets/full.pth)，放到crepe/assets/full.pth
 
 > python svc_inference.py --config config/maxgan.yaml --model model_pretrain/max-vc-pretrain.pth --spk config/singers/singer0001.npy --wave test.wav
 
@@ -33,7 +37,7 @@
 
 - 4 提取基音，同时生成训练文件 **filelist/train.txt**，剪切train的前5条用于制作**filelist/eval.txt**
 
-    使用深度改在的torchcrepe提取F0隐藏特征，下载模型[full.pth](https://github.com/maxrmorrison/torchcrepe/blob/master/torchcrepe/assets/full.pth)
+    使用深度改造的torchcrepe提取F0隐藏特征，下载模型[full.pth](https://github.com/maxrmorrison/torchcrepe/blob/master/torchcrepe/assets/full.pth)
 
     > python svc_preprocess_f0.py
 
