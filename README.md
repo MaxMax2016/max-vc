@@ -1,10 +1,9 @@
-# singing voice conversion based latent f0, just for test
+# singing voice conversion based latent f0
 
-本项目仅仅用于隐式F0的实验，用于解决F0炸掉的问题
+本项目使用改造的torchcrepe提取F0隐藏特征，用于解决F0炸掉的问题
 
 浅浅训练一下，F0鲁棒性大大提高，但F0不具备可控性
 
-使用改造的torchcrepe提取F0隐藏特征
 
 ## 测试
 从release页面下面模型[max-vc-pretrain.pth](https://github.com/PlayVoice/max-vc/releases/tag/v0.1)
