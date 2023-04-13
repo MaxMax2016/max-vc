@@ -66,11 +66,12 @@ class Generator(torch.nn.Module):
             Conv1d(hp.audio.n_mel_channels, hp.gen.upsample_initial_channel, 7, 1, padding=3))
         # transposed conv-based upsamplers. does not apply anti-aliasing
         self.ups = nn.ModuleList()
-        self.upf = nn.ModuleList()
+        self.upp = nn.ModuleList()
         for i, (u, k) in enumerate(zip(hp.gen.upsample_rates, hp.gen.upsample_kernel_sizes)):
             # spk
             self.adapter.append(SpeakerAdapter(
                 256, hp.gen.upsample_initial_channel // (2 ** (i + 1))))
+            # print(f'ups: {i} {k}, {u}, {(k - u) // 2}')
             # base
             self.ups.append(nn.ModuleList([
                 weight_norm(ConvTranspose1d(hp.gen.upsample_initial_channel // (2 ** i),
@@ -78,8 +79,10 @@ class Generator(torch.nn.Module):
                                                 2 ** (i + 1)),
                                             k, u, padding=(k - u) // 2))
             ]))
+        for i, (u, k) in enumerate(zip(hp.gen.upsample_rates, hp.gen.upsample_kernel_sizes_p)):
+            # print(f'upp: {i} {k}, {u}, {(k - u) // 2}')
             # pit
-            self.upf.append(nn.ModuleList([
+            self.upp.append(nn.ModuleList([
                 weight_norm(ConvTranspose1d(hp.gen.upsample_initial_channel // (2 ** i),
                                             hp.gen.upsample_initial_channel // (
                                                 2 ** (i + 1)),
@@ -101,8 +104,8 @@ class Generator(torch.nn.Module):
         # weight initialization
         for i in range(len(self.ups)):
             self.ups[i].apply(init_weights)
-        for i in range(len(self.upf)):
-            self.upf[i].apply(init_weights)
+        for i in range(len(self.upp)):
+            self.upp[i].apply(init_weights)
         self.conv_post.apply(init_weights)
 
     def forward(self, spk, x, pos, f0):
@@ -124,8 +127,8 @@ class Generator(torch.nn.Module):
             # adapter
             x = self.adapter[i](x, spk)
             # upsampling
-            for i_up in range(len(self.upf[i])):
-                f = self.upf[i][i_up](f)
+            for i_up in range(len(self.upp[i])):
+                f = self.upp[i][i_up](f)
             x = x + f
             # AMP blocks
             xs = None
@@ -144,6 +147,9 @@ class Generator(torch.nn.Module):
 
     def remove_weight_norm(self):
         for l in self.ups:
+            for l_i in l:
+                remove_weight_norm(l_i)
+        for l in self.upp:
             for l_i in l:
                 remove_weight_norm(l_i)
         for l in self.resblocks:

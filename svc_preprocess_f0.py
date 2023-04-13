@@ -21,7 +21,7 @@ if __name__ == "__main__":
         if file.endswith(".wav"):
             file = file[:-4]
             wav_path = f"./{rootPath}//{file}.wav"
-            featur_pit = crepeInfer.compute_f0(wav_path)
+            featur_pit = crepeInfer.compute_f0_file(wav_path)
 
             np.save(
                 f"{outPath}//{file}.nsf",

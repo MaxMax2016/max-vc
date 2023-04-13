@@ -23,7 +23,7 @@ def main(args):
     os.system(f"python svc_inference_ppg.py -w {args.wave} -p {ppg_path}")
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     crepeInfer = CrepeInfer('crepe/assets/full.pth', device)
-    pit = crepeInfer.compute_f0(args.wave)
+    pit = crepeInfer.compute_f0_file(args.wave)
     del crepeInfer
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
