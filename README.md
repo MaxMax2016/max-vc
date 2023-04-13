@@ -1,4 +1,4 @@
-# singing voice conversion based latent f0
+# singing voice conversion based on latent f0
 
 本项目使用改造的torchcrepe提取F0隐藏特征，用于解决F0炸掉的问题
 
