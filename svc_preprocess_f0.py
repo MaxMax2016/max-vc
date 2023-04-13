@@ -6,8 +6,8 @@ from crepe.model import CrepeInfer
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-file = 'crepe/assets/full.pth'
-crepeInfer = CrepeInfer(file, device)
+crepeModel = 'crepe/assets/full.pth'
+crepeInfer = CrepeInfer(crepeModel, device)
 
 if __name__ == "__main__":
     os.makedirs("filelists", exist_ok=True)
@@ -30,9 +30,9 @@ if __name__ == "__main__":
             )
 
             path_spk = "./data_svc/lora_speaker.npy"
-            path_wave = f"./data_svc/waves//{file}.wav"
-            path_pitch = f"./data_svc/pitch//{file}.nsf.npy"
-            path_whisper = f"./data_svc/whisper//{file}.ppg.npy"
+            path_wave = f"./data_svc/waves/{file}.wav"
+            path_pitch = f"./data_svc/pitch/{file}.nsf.npy"
+            path_whisper = f"./data_svc/whisper/{file}.ppg.npy"
             print(
                 f"{path_wave}|{path_pitch}|{path_whisper}|{path_spk}",
                 file=files,

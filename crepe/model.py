@@ -97,14 +97,14 @@ class Crepe(torch.nn.Module):
         # Forward pass through first five layers
         x = self.embed(x)
 
-        if embed:
-            return x
-
         # Forward pass through layer six
         x = self.layer(x, self.conv6, self.conv6_BN)
 
         # shape=(batch, self.in_features)
         x = x.permute(0, 2, 1, 3).reshape(-1, self.in_features)
+
+        if embed:
+            return x
 
         # Compute logits
         return torch.sigmoid(self.classifier(x))
@@ -210,14 +210,23 @@ class CrepeInfer():
         # Concatenate
         return torch.cat(results, 1)
 
-    def compute_f0(self, path):
+    def compute_f0(self, audio):
+        audio = torch.tensor(np.copy(audio))[None]
+        audio = audio.to(self.device)
+        hop_length = 160
+        f0 = self.embed(audio, hop_length, 256).squeeze()
+        length = f0.shape[0]
+        f0 = torch.reshape(f0, (length, -1))
+        return f0.data.cpu().float().numpy()
+
+    def compute_f0_file(self, path):
         audio, sr = self.load_audio(path)
         audio = audio.to(self.device)
         assert sr == 16000
         # Here we'll use a 10 millisecond hop length
         hop_length = int(sr / 100.0)
         assert hop_length == 160
-        f0 = self.embed(audio, hop_length, 2048).squeeze()
+        f0 = self.embed(audio, hop_length, 256).squeeze()
         length = f0.shape[0]
         f0 = torch.reshape(f0, (length, -1))
         return f0.data.cpu().float().numpy()

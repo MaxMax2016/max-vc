@@ -2,6 +2,7 @@ import os
 import torch
 import argparse
 import numpy as np
+import librosa
 
 from scipy.io.wavfile import write
 from omegaconf import OmegaConf
@@ -22,12 +23,14 @@ ppg_path = "svc_tmp.ppg.npy"
 def main(args):
     os.system(f"python svc_inference_ppg.py -w {args.wave} -p {ppg_path}")
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    crepeInfer = CrepeInfer('crepe/assets/full.pth', device)
-    pit = crepeInfer.compute_f0_file(args.wave)
+    crepeModel = 'crepe/assets/full.pth'
+    crepeInfer = CrepeInfer(crepeModel, device)
+    audio, _ = librosa.load(args.wave, sr=16000)
+    pit = crepeInfer.compute_f0(audio)
     del crepeInfer
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
-    
+
     hp = OmegaConf.load(args.config)
     model = Generator(hp)
     load_svc_model(args.model, model)

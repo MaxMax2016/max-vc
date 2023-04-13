@@ -1,26 +1,18 @@
-# singing voice conversion based on whisper & maxgan, and target to LoRA
+# singing voice conversion based latent f0, just for test
 
-```per
-maxgan v1 == bigvgan + nsf        PlayVoice/lora-svc
+本项目仅仅用于隐式F0的实验，用于解决F0炸掉的问题
 
-maxgan v2 == bigvgan + latent f0  PlayVoice/maxgan-svc
-```
-```
-基于人工智能三大巨头的黑科技：
+浅浅训练一下，F0鲁棒性大大提高，但F0不具备可控性
 
-来至OpenAI的whispe，68万小时多语言
+## 测试
+从release页面下面模型[max-vc-pretrain.pth]()
 
-来至Nvidia的bigvgan，语音生成抗锯齿
+> python svc_inference.py --config config/maxgan.yaml --model model_pretrain/max-vc-pretrain.pth --spk config/singers/singer0001.npy --wave test.wav
 
-来至Microsoft的adapter，高效率微调
-```
-
-maxgan v2 没有显示使用F0，因此也没有使用到NSF
-
-主分支用于，说明如何基于预训练模型微调定制专有音色；
+生成文件在当前目录svc_out.wav
 
 
-## 训练
+## 训练（未完善）
 
 - 1 数据准备，将音频切分小于30S（推荐10S左右/可以不依照句子结尾）， 转换采样率为16000Hz, 将音频数据放到 **./data_svc/waves**
     > 这个我想你会~~~
@@ -73,18 +65,6 @@ maxgan v2 没有显示使用F0，因此也没有使用到NSF
           ├── 000002.ppg.npy
           └── 000003.ppg.npy
 
-## 推理
-导出生成器，判别器只会在训练中用到
-
-> python svc_inference_export.py --config config/maxgan.yaml --checkpoint_path chkpt/lora/lora_0090.pt
-
-到出的模型在当前文件夹maxgan_g.pth，文件大小为19.3M
-
-> python svc_inference.py --config config/maxgan.yaml --model maxgan_g.pth --spk ./data_svc/**lora_speaker.npy** --wave test.wav
-
-生成文件在当前目录svc_out.wav
-
-**PS.** 本项目集成了音效算法，你可以使用混响等常见音效
 
 ## 代码来源和参考文献
 [AdaSpeech: Adaptive Text to Speech for Custom Voice](https://arxiv.org/pdf/2103.00993.pdf)
@@ -101,7 +81,7 @@ https://github.com/maxrmorrison/torchcrepe
 
 https://github.com/chenwj1989/pafx
 
-# 注意事项
+# 期望您的鼓励
 If you adopt the code or idea of this project, please list it in your project, which is the basic criterion for the continuation of the open source spirit.
 
 如果你采用了本项目的代码或创意，请在你的项目中列出，这是开源精神得以延续的基本准则。
