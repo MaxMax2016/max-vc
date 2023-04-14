@@ -6,7 +6,7 @@ In this project, the reconstructed torchcrepe is used to extract F0 hidden featu
 
 With a little training, the robustness of F0 is greatly improved, but F0 is not controllable.
 
-浅浅训练一下，F0鲁棒性大大提高，但F0不具备可控性
+浅浅训练一下，F0鲁棒性大大提高，需要额外F0算法去做音区偏移
 
 
 ## 测试
@@ -19,7 +19,7 @@ With a little training, the robustness of F0 is greatly improved, but F0 is not 
 生成文件在当前目录svc_out.wav
 
 
-## 训练（未完善）
+## 训练
 
 - 1 数据准备，将音频切分小于30S（推荐10S左右/可以不依照句子结尾）， 转换采样率为16000Hz, 将音频数据放到 **./data_svc/waves**
     > 这个我想你会~~~
