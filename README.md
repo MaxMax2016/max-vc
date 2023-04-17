@@ -1,12 +1,8 @@
 # singing voice conversion based on latent f0
 
-In this project, the reconstructed torchcrepe is used to extract F0 hidden features to solve the problem of F0 explosion.
+In this project, the reconstructed torchcrepe is used to extract audio encodec but not F0 to solve the problem of F0 explosion.
 
-本项目使用改造的torchcrepe提取F0隐藏特征，用于解决F0炸掉的问题
-
-With a little training, the robustness of F0 is greatly improved, but F0 is not controllable.
-
-浅浅训练一下，F0鲁棒性大大提高，需要额外F0算法去做音区偏移
+本项目使用改造的torchcrepe提取音频编码，而不提取F0，用于解决F0炸掉的问题
 
 
 ## 测试
