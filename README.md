@@ -1,4 +1,4 @@
-# singing voice conversion based on latent f0
+# singing voice conversion without f0
 
 In this project, the reconstructed torchcrepe is used to extract audio encodec but not F0 to solve the problem of F0 explosion.
 
