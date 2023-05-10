@@ -14,6 +14,8 @@ In this project, the reconstructed torchcrepe is used to extract audio encodec b
 
 生成文件在当前目录svc_out.wav
 
+💗由于没有提取F0，所以模型不具备音高迁移的能力；但是，可以对原始音频进行音高迁移（SoundTouch），然后在使用模型进行VC。
+
 ## 代码来源和参考文献
 [AdaSpeech: Adaptive Text to Speech for Custom Voice](https://arxiv.org/pdf/2103.00993.pdf)
 
